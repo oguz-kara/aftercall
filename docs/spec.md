@@ -45,8 +45,12 @@ Google Ads harcaması artarken randevu düz.
       LLM'li testler LiveKit Inference ücretsiz kotasıyla
 
 **v2 — web + telefon**
-- [ ] `web/` rebrand (ledger primitive dili) + `/calls` inceleme sayfası
-      (transcript + sonuç + sabah raporu görünümü)
+- [x] `web/` rebrand (app-config: Velora Aesthetics, "Call the clinic",
+      nötr accent; video/screenshare kapalı) + `/calls` sabah raporu:
+      sayaç kartları (handled/booked/escalated), sonuç çipli çağrı logu,
+      yaklaşan konsültasyon tablosu — canlı veriyle doğrulandı
+- [ ] Transcript'in tamamının kaydı (şu an yalnız tool sonuçları; oturum
+      transcript event'leri v2.1)
 - [ ] LiveKit Cloud projesi + ücretsiz ABD numarası → gerçek telefon demosu
 - [ ] Claude'a geçiş (`agents-plugin-anthropic`) — Anthropic kredisiyle
 - [ ] Cal.com gerçek booking + SMS teyit (stub → gerçek)
