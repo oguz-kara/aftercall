@@ -35,11 +35,10 @@ describe('agent evaluation', () => {
       .isMessage({ role: 'assistant' })
       .judge(judgeLlm, {
         intent: dedent`
-          Greets the user in a friendly manner.
-
-          Optional context that may or may not be included:
-          - Offer of assistance with any request the user may have
-          - Other small talk or chit chat is acceptable, so long as it is friendly and not too intrusive
+          Answers the phone as the clinic's receptionist: identifies Velora
+          Aesthetics (or clearly acts as its receptionist) and offers to
+          help the caller. A professional, courteous tone is expected —
+          it does not need to be chatty or informal.
         `,
       });
 

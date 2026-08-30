@@ -35,8 +35,12 @@ Google Ads harcaması artarken randevu düz.
 - [ ] Acil kelime tespiti: clinic.md listesi → anında transfer yolu
 - [ ] Çağrı kaydı: oturum transcript'i + sonuç (booked/message/escalated/
       info) → `data/out/calls.json`
-- [ ] `agent.test.ts` genişletmesi: senaryo seti (randevu, fiyat sorusu,
-      acil, kapsam dışı) — ölçüm: acil tespit oranı, yanlış fiyat verme 0
+- [x] `agent.test.ts` genişletmesi — **2026-08-30 GERÇEK koşu: 6/6 geçti**
+      (LiveKit Inference, ücretsiz kota; Anthropic'siz): acil →
+      emergencyTransfer tool çağrısı ✓, kesin fiyat reddi ✓, tıbbi tavsiye
+      reddi ✓, grounding ✓; taban selamlama testi resepsiyonist personasına
+      hizalandı. Senaryo seti 20+'ya genişletilecek (gerçek ölçüm raporu
+      öncesi)
 - [ ] AFTERCALL_MOCK gerekmez: metin testleri zaten modelsiz/ucuz koşar;
       LLM'li testler LiveKit Inference ücretsiz kotasıyla
 
