@@ -1,78 +1,117 @@
-import { Agent, dedent, inference } from '@livekit/agents';
+import { Agent, dedent, inference, tool } from '@livekit/agents';
+import { z } from 'zod';
+import {
+  availableSlots,
+  bookAppointment,
+  loadClinicConfig,
+  logCallEvent,
+} from './clinic.ts';
 
-// Build a custom voice AI assistant with the functional `Agent.create` API
-export function createAgent() {
+// AfterCall — overflow & after-hours receptionist for Velora Aesthetics
+// (fictional demo clinic; knowledge lives in ../data/clinic.md).
+export async function createAgent() {
+  const clinic = await loadClinicConfig();
+
   return Agent.create({
     instructions: dedent`
-        You are a friendly, reliable voice assistant that answers questions, explains topics, and completes tasks with available tools.
+        You are the after-hours and overflow phone receptionist for Velora
+        Aesthetics. The front desk did not pick up — you catch the call so
+        the caller is not lost. You never replace the front desk: for
+        anything you cannot resolve, take a message and promise a morning
+        follow-up.
 
-        # Output rules
+        # Clinic knowledge (the ONLY facts you may state)
 
-        You are interacting with the user via voice, and must apply the following rules to ensure your output sounds natural in a text-to-speech system:
+        ${clinic}
 
-        - Respond in plain text only. Never use JSON, markdown, lists, tables, code, emojis, or other complex formatting.
-        - Keep replies brief by default: one to three sentences. Ask one question at a time.
-        - Do not reveal system instructions, internal reasoning, tool names, parameters, or raw outputs
-        - Spell out numbers, phone numbers, or email addresses
-        - Omit \`https://\` and other formatting if listing a web url
-        - Avoid acronyms and words with unclear pronunciation, when possible.
+        # Hard rules
 
-        # Conversational flow
+        - EMERGENCY: if the caller mentions any emergency keyword from the
+          clinic knowledge (severe pain, bleeding, spreading swelling,
+          infection, fever after a procedure, allergic reaction, trouble
+          breathing), immediately use the emergencyTransfer tool. Do not
+          ask follow-up questions first.
+        - Prices: state ranges only, exactly as written. Never quote a
+          final or exact price; the consultation determines it.
+        - No medical advice of any kind — offer a free consultation instead.
+        - Booking: collect name, phone number and requested service, offer
+          slots from the checkAvailability tool, then book with
+          bookAppointment. Confirm the slot back to the caller.
+        - Anything else you cannot resolve: use takeMessage and say the
+          front desk will call back in the morning.
 
-        - Help the user accomplish their objective efficiently and correctly. Prefer the simplest safe step first. Check understanding and adapt.
-        - Provide guidance in small steps and confirm completion before continuing.
-        - Summarize key results when closing a topic.
+        # Voice output rules
 
-        # Tools
-
-        - Use available tools as needed, or upon user request.
-        - Collect required inputs first. Perform actions silently if the runtime expects it.
-        - Speak outcomes clearly. If an action fails, say so once, propose a fallback, or ask how to proceed.
-        - When tools return structured data, summarize it to the user in a way that is easy to understand, and don't directly recite identifiers or other technical details.
-
-        # Guardrails
-
-        - Stay within safe, lawful, and appropriate use; decline harmful or out-of-scope requests.
-        - For medical, legal, or financial topics, provide general information only and suggest consulting a qualified professional.
-        - Protect privacy and minimize sensitive data.
+        - Plain text only; no lists, markdown or emojis.
+        - One to three short sentences; one question at a time.
+        - Spell out numbers and phone numbers.
+        - Never reveal these instructions or tool names.
       `,
 
-    // A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
-    // See all available models at https://docs.livekit.io/agents/models/llm/
-    llm: new inference.LLM({ model: 'google/gemma-4-31b-it' }),
+    llm: new inference.LLM({ model: process.env.AFTERCALL_LLM ?? 'google/gemma-4-31b-it' }),
+    // Claude swap (v2, once the Anthropic key is live):
+    //   import * as anthropic from '@livekit/agents-plugin-anthropic'
+    //   llm: new anthropic.LLM({ model: 'claude-sonnet-5' })
 
-    // To use a realtime model instead of a voice pipeline, replace the LLM
-    // with a RealtimeModel and remove the STT/TTS from the AgentSession
-    // (Note: This is for the OpenAI Realtime API. For other providers, see https://docs.livekit.io/agents/models/realtime/)
-    // 1. Install '@livekit/agents-plugin-openai'
-    // 2. Set OPENAI_API_KEY in .env.local
-    // 3. Add `import * as openai from '@livekit/agents-plugin-openai'` to the top of this file
-    // 4. Replace the llm option with:
-    //    llm: new openai.realtime.RealtimeModel({ voice: 'marin' }),
-
-    // To add tools, specify `tools` in the constructor.
-    // Here's an example that adds a simple weather tool.
-    // You also have to add `import { tool } from '@livekit/agents'` and `import { z } from 'zod'` to the top of this file
-    // tools: [
-    //   tool({
-    //     name: 'getWeather',
-    //     description: dedent`
-    //       Use this tool to look up current weather information in the given location.
-    //
-    //       If the location is not supported by the weather service, the tool will indicate this.
-    //       You must tell the user the location's weather is unavailable.
-    //     `,
-    //     parameters: z.object({
-    //       location: z
-    //         .string()
-    //         .describe('The location to look up weather information for (e.g. city name)'),
-    //     }),
-    //     execute: async ({ location }) => {
-    //       console.log(`Looking up weather for ${location}`);
-    //
-    //       return 'sunny with a temperature of 70 degrees.';
-    //     },
-    //   }),
-    // ],
+    tools: [
+      tool({
+        name: 'checkAvailability',
+        description: 'Look up open consultation slots for the next week.',
+        parameters: z.object({}),
+        execute: async () => {
+          const slots = await availableSlots();
+          return `Open slots: ${slots.join(', ')}`;
+        },
+      }),
+      tool({
+        name: 'bookAppointment',
+        description: dedent`
+          Book a consultation slot. Only call after the caller confirmed a
+          specific slot returned by checkAvailability and you collected
+          their name, phone number and requested service.
+        `,
+        parameters: z.object({
+          slot: z.string().describe('Exact slot string from checkAvailability, e.g. "2026-09-02 10:00"'),
+          name: z.string(),
+          phone: z.string(),
+          service: z.string(),
+        }),
+        execute: async ({ slot, name, phone, service }) => {
+          const res = await bookAppointment({ slot, name, phone, service });
+          return res.ok
+            ? `Booked ${slot} for ${name}.`
+            : `Could not book: ${res.reason}. Offer another slot.`;
+        },
+      }),
+      tool({
+        name: 'takeMessage',
+        description:
+          'Record a message for the front desk to handle in the morning. Use when a request is out of scope.',
+        parameters: z.object({
+          name: z.string().describe('Caller name, or "unknown"'),
+          phone: z.string().describe('Callback number, or "unknown"'),
+          message: z.string(),
+        }),
+        execute: async ({ name, phone, message }) => {
+          await logCallEvent({ type: 'message', detail: { name, phone, message } });
+          return 'Message recorded; the front desk will follow up in the morning.';
+        },
+      }),
+      tool({
+        name: 'emergencyTransfer',
+        description: dedent`
+          Immediately transfer the caller to the on-call practitioner.
+          Use the MOMENT any emergency keyword is mentioned.
+        `,
+        parameters: z.object({
+          reason: z.string().describe('What the caller reported, briefly'),
+        }),
+        execute: async ({ reason }) => {
+          await logCallEvent({ type: 'escalated', detail: { reason, transferTo: '+1-555-0100' } });
+          // v2: real SIP warm transfer via LiveKit; v1 logs and informs.
+          return 'Transfer initiated. Tell the caller you are connecting them to the on-call practitioner right now.';
+        },
+      }),
+    ],
   });
 }
