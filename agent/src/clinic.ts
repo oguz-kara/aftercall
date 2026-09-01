@@ -79,3 +79,25 @@ export async function bookAppointment(entry: {
   await logCallEvent({ type: 'booked', detail: entry });
   return { ok: true };
 }
+
+export interface TranscriptItem {
+  role: string;
+  text: string;
+  at: string;
+}
+
+// One record per call (keyed by room name); items appended as they happen
+// so nothing is lost if the process dies mid-call.
+export async function appendTranscript(room: string, item: TranscriptItem) {
+  await fs.mkdir(OUT, { recursive: true });
+  const p = path.join(OUT, 'transcripts.json');
+  let calls: Record<string, { startedAt: string; items: TranscriptItem[] }> = {};
+  try {
+    calls = JSON.parse(await fs.readFile(p, 'utf-8'));
+  } catch {
+    /* first write */
+  }
+  if (!calls[room]) calls[room] = { startedAt: item.at, items: [] };
+  calls[room].items.push(item);
+  await fs.writeFile(p, JSON.stringify(calls, null, 2));
+}

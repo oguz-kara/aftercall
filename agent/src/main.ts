@@ -1,4 +1,5 @@
 import { ServerOptions, cli, defineAgent, inference, voice } from '@livekit/agents';
+import { appendTranscript } from './clinic.ts';
 import { audioEnhancement } from '@livekit/plugins-ai-coustics';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'node:url';
@@ -70,12 +71,26 @@ export default defineAgent({
     // // Start the avatar and wait for it to join
     // await avatar.start(session, ctx.room);
 
+    // Persist the full conversation transcript per call (morning report)
+    const roomName = ctx.room.name ?? `call-${Date.now()}`;
+    session.on(voice.AgentSessionEventTypes.ConversationItemAdded, (ev) => {
+      const text = 'textContent' in ev.item ? ev.item.textContent : undefined;
+      const role = 'role' in ev.item ? String(ev.item.role) : 'system';
+      if (!text) return;
+      appendTranscript(roomName, {
+        role,
+        text,
+        at: new Date(ev.createdAt ?? Date.now()).toISOString(),
+      }).catch((err) => console.error('transcript write failed:', err));
+    });
+
     // Join the room and connect to the user
     await ctx.connect();
 
     // Greet the user on joining
     session.generateReply({
-      instructions: 'Greet the user in a helpful and friendly manner.',
+      instructions:
+        "Answer the phone as Velora Aesthetics' after-hours receptionist: brief professional greeting, then ask how you can help.",
     });
   },
 });

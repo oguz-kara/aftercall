@@ -11,12 +11,25 @@ interface CallEvent {
   at: string;
   detail: Record<string, string>;
 }
+interface TranscriptCall {
+  startedAt: string;
+  items: { role: string; text: string; at: string }[];
+}
 interface Appointment {
   slot: string;
   name: string;
   phone: string;
   service: string;
   bookedAt: string;
+}
+
+async function readJsonObj<T>(file: string): Promise<Record<string, T>> {
+  try {
+    const p = path.resolve(process.cwd(), '..', 'data', 'out', file);
+    return JSON.parse(await fs.readFile(p, 'utf-8'));
+  } catch {
+    return {};
+  }
 }
 
 async function readJson<T>(file: string): Promise<T[]> {
@@ -38,6 +51,9 @@ export default async function CallsPage() {
   const events = (await readJson<CallEvent>('calls.json')).sort((a, b) => b.at.localeCompare(a.at));
   const appointments = (await readJson<Appointment>('appointments.json')).sort((a, b) =>
     a.slot.localeCompare(b.slot),
+  );
+  const transcripts = Object.entries(await readJsonObj<TranscriptCall>('transcripts.json')).sort(
+    (a, b) => b[1].startedAt.localeCompare(a[1].startedAt),
   );
   const counts = {
     booked: events.filter((e) => e.type === 'booked').length,
@@ -115,6 +131,36 @@ export default async function CallsPage() {
           {events.length === 0 && (
             <p className="p-10 text-center text-[13px] text-neutral-400">
               No calls yet — try the call demo first.
+            </p>
+          )}
+        </div>
+
+        <h2 className="mb-2 text-[13px] font-medium text-neutral-500">Transcripts</h2>
+        <div className="mb-8 divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+          {transcripts.map(([room, call]) => (
+            <details key={room} className="group">
+              <summary className="flex cursor-pointer items-center gap-3 p-4 text-[13px] hover:bg-neutral-50">
+                <span className="font-mono text-neutral-900">{room}</span>
+                <span className="text-neutral-400">{call.items.length} turns</span>
+                <span className="ml-auto font-mono text-[11px] text-neutral-400">
+                  {new Date(call.startedAt).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </summary>
+              <div className="space-y-2 border-t border-neutral-200 bg-neutral-50/50 p-4">
+                {call.items.map((t, i) => (
+                  <p key={i} className="text-[13px] leading-relaxed">
+                    <span className={`mr-2 font-mono text-[11px] uppercase ${t.role === 'assistant' ? 'text-neutral-400' : 'text-neutral-600 font-semibold'}`}>
+                      {t.role === 'assistant' ? 'agent' : 'caller'}
+                    </span>
+                    <span className="text-neutral-800">{t.text}</span>
+                  </p>
+                ))}
+              </div>
+            </details>
+          ))}
+          {transcripts.length === 0 && (
+            <p className="p-10 text-center text-[13px] text-neutral-400">
+              No transcripts yet — make a call first (the agent must be restarted after this update).
             </p>
           )}
         </div>
