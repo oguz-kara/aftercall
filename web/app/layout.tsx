@@ -1,4 +1,4 @@
-import { Public_Sans } from 'next/font/google';
+import { Fraunces, Public_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import { ThemeProvider } from '@/components/app/theme-provider';
@@ -10,6 +10,12 @@ import '@/styles/globals.css';
 const publicSans = Public_Sans({
   variable: '--font-public-sans',
   subsets: ['latin'],
+});
+
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
+  subsets: ['latin'],
+  axes: ['SOFT', 'opsz'],
 });
 
 const commitMono = localFont({
@@ -55,6 +61,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
       className={cn(
         publicSans.variable,
+          fraunces.variable,
         commitMono.variable,
         'scroll-smooth font-sans antialiased'
       )}
@@ -67,7 +74,8 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <body className="overflow-x-hidden">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="light"
+          forcedTheme="light"
           enableSystem
           disableTransitionOnChange
         >

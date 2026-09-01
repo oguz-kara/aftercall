@@ -122,3 +122,26 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* AfterCall — breathing call button (the muted ring of a phone) */
+@keyframes ac-ring {
+  0% { transform: scale(1); opacity: 0.9; }
+  70% { transform: scale(1.55); opacity: 0; }
+  100% { transform: scale(1.55); opacity: 0; }
+}
+.ac-pulse { animation: ac-ring 3.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite; }
+.ac-pulse-late { animation-delay: 1.6s; }
+@media (prefers-reduced-motion: reduce) {
+  .ac-pulse, .ac-pulse-late { animation: none; opacity: 0; }
+}
+
+/* Warm the whole app toward the clinic palette (light theme is forced) */
+:root {
+  --background: oklch(0.965 0.008 84);   /* porcelain #F6F3EF */
+  --foreground: oklch(0.235 0.01 75);    /* ink #211E1A */
+  --primary: oklch(0.52 0.045 160);      /* eucalyptus #5F7A6A */
+  --primary-foreground: oklch(0.965 0.008 84);
+  --border: oklch(0.905 0.012 84);       /* hairline #E4DFD7 */
+  --muted-foreground: oklch(0.585 0.015 78); /* stone #8B857C */
+  --ring: oklch(0.52 0.045 160);
+}

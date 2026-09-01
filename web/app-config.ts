@@ -43,7 +43,7 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   isPreConnectBufferEnabled: true,
 
   logo: '/lk-logo.svg',
-  accent: '#171717',
+  accent: '#5F7A6A',
   logoDark: '/lk-logo-dark.svg',
   accentDark: '#1fd5f9',
   startButtonText: 'Call the clinic',
