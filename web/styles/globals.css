@@ -129,19 +129,22 @@
   70% { transform: scale(1.55); opacity: 0; }
   100% { transform: scale(1.55); opacity: 0; }
 }
-.ac-pulse { animation: ac-ring 3.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite; }
+.ac-pulse { animation: ac-ring 3.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite; border-color: rgba(192, 148, 228, 0.55); }
 .ac-pulse-late { animation-delay: 1.6s; }
 @media (prefers-reduced-motion: reduce) {
   .ac-pulse, .ac-pulse-late { animation: none; opacity: 0; }
 }
 
-/* Warm the whole app toward the clinic palette (light theme is forced) */
+/* AfterCall theme — Hume AI style reference (design-system/design.md):
+   paper canvas, ink marks, iris violet as the sole vivid accent. */
 :root {
-  --background: oklch(0.965 0.008 84);   /* porcelain #F6F3EF */
-  --foreground: oklch(0.235 0.01 75);    /* ink #211E1A */
-  --primary: oklch(0.52 0.045 160);      /* eucalyptus #5F7A6A */
-  --primary-foreground: oklch(0.965 0.008 84);
-  --border: oklch(0.905 0.012 84);       /* hairline #E4DFD7 */
-  --muted-foreground: oklch(0.585 0.015 78); /* stone #8B857C */
-  --ring: oklch(0.52 0.045 160);
+  --background: #ffffff;                 /* paper */
+  --foreground: #222222;                 /* ink */
+  --primary: #222222;                    /* filled controls stay ink */
+  --primary-foreground: #ffffff;
+  --border: #eeece9;                     /* hairline, nearly invisible */
+  --muted: #fff9f3;                      /* bone */
+  --muted-foreground: #7a7876;           /* smoke */
+  --ring: #c094e4;                       /* iris violet */
+  --ac-iris: linear-gradient(90deg, #c094e4 0%, #f7bbe6 50%, #ffb760 100%);
 }

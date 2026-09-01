@@ -1,4 +1,4 @@
-import { Fraunces, Public_Sans } from 'next/font/google';
+import { Public_Sans } from 'next/font/google';
 import localFont from 'next/font/local';
 import { headers } from 'next/headers';
 import { ThemeProvider } from '@/components/app/theme-provider';
@@ -12,11 +12,6 @@ const publicSans = Public_Sans({
   subsets: ['latin'],
 });
 
-const fraunces = Fraunces({
-  variable: '--font-fraunces',
-  subsets: ['latin'],
-  axes: ['SOFT', 'opsz'],
-});
 
 const commitMono = localFont({
   display: 'swap',
@@ -61,7 +56,6 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       suppressHydrationWarning
       className={cn(
         publicSans.variable,
-          fraunces.variable,
         commitMono.variable,
         'scroll-smooth font-sans antialiased'
       )}

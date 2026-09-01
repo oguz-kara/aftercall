@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 
-// AfterCall welcome — "the closed reception's card": the night-time notice a
-// caller would meet, with one action. Palette + type: see styles/globals.css
-// (porcelain / ink / eucalyptus; Fraunces reserved for the clinic's voice).
+// AfterCall welcome — Hume-style "scientific pastel instrument panel"
+// (design-system/design.md): paper canvas, ink type at tight tracking,
+// mono lab-labels, pastel category chips, and the iris-gradient orb as
+// the single vivid moment. Fellix substituted with the app sans at 500.
 
 function useClock() {
   const [now, setNow] = useState<Date | null>(null);
@@ -15,6 +16,14 @@ function useClock() {
   }, []);
   return now;
 }
+
+const services = [
+  { label: 'Botox', wash: '#fce0ee' },
+  { label: 'Dermal fillers', wash: '#fdebf7' },
+  { label: 'Laser resurfacing', wash: '#ffe9cf' },
+  { label: 'Chemical peels', wash: '#daf7ee' },
+  { label: 'Free consultation', wash: '#cef1e1' },
+];
 
 interface WelcomeViewProps {
   startButtonText: string;
@@ -29,35 +38,33 @@ export const WelcomeView = ({
   const now = useClock();
 
   return (
-    <div ref={ref} className="bg-[#F6F3EF]">
+    <div ref={ref} className="bg-white">
       <section className="flex min-h-svh flex-col items-center justify-center px-6 text-center">
-        {/* clinic voice */}
-        <p className="font-mono text-[11px] tracking-[0.22em] text-[#8B857C] uppercase">
-          Velora Aesthetics · after hours
+        {/* lab label */}
+        <p className="font-mono text-[10px] tracking-[0.25em] text-[#7a7876] uppercase">
+          Velora Aesthetics · After-hours line
         </p>
 
-        <h1
-          className="mt-4 max-w-xl text-[34px] leading-[1.15] font-normal text-[#211E1A] sm:text-[40px]"
-          style={{ fontFamily: 'var(--font-fraunces), Georgia, serif' }}
-        >
+        <h1 className="mt-5 max-w-2xl text-[36px] leading-[1.11] font-medium tracking-[-0.025em] text-[#222222] sm:text-[44px]">
           Reception is closed.
           <br />
-          Our assistant is answering.
+          The assistant is listening.
         </h1>
 
-        <p className="mt-4 max-w-md text-[14px] leading-relaxed text-[#8B857C]">
+        <p className="mt-4 max-w-md text-[16px] leading-[1.5] tracking-[-0.4px] text-[#7a7876]">
           Ask about treatments and prices, book a free consultation, or reach the on-call
           practitioner in an emergency.
         </p>
 
-        {/* signature: the breathing call button */}
+        {/* signature: the iris orb */}
         <button
           onClick={onStartCall}
           aria-label={startButtonText}
-          className="group relative mt-12 flex size-28 items-center justify-center rounded-full bg-[#5F7A6A] text-[#F6F3EF] shadow-[0_10px_30px_rgba(95,122,106,0.35)] transition-transform hover:scale-[1.03] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#5F7A6A]/30"
+          className="group relative mt-14 flex size-28 items-center justify-center rounded-full text-white transition-transform hover:scale-[1.04] focus:outline-none focus-visible:ring-4 focus-visible:ring-[#c094e4]/40"
+          style={{ background: 'linear-gradient(135deg, #c094e4 0%, #f7bbe6 55%, #ffb760 100%)' }}
         >
-          <span className="ac-pulse absolute inset-0 rounded-full border border-[#5F7A6A]/50" />
-          <span className="ac-pulse ac-pulse-late absolute inset-0 rounded-full border border-[#5F7A6A]/35" />
+          <span className="ac-pulse absolute inset-0 rounded-full border" />
+          <span className="ac-pulse ac-pulse-late absolute inset-0 rounded-full border" />
           <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path
               d="M6.6 3h2.3c.5 0 .9.3 1 .8l.7 3a1 1 0 0 1-.3 1L8.8 9.2a13.4 13.4 0 0 0 6 6l1.4-1.5a1 1 0 0 1 1-.3l3 .7c.5.1.8.5.8 1v2.3c0 .6-.5 1.1-1.1 1.1C11.6 18.9 5.1 12.4 4.5 4.1 4.5 3.5 5 3 5.6 3h1Z"
@@ -66,27 +73,34 @@ export const WelcomeView = ({
           </svg>
         </button>
 
-        <p className="mt-5 font-mono text-[12px] text-[#8B857C]">
-          <span className="mr-1.5 inline-block size-1.5 rounded-full bg-[#5F7A6A] align-middle" />
-          assistant on duty
+        <p className="mt-6 font-mono text-[10px] tracking-[0.25em] text-[#7a7876] uppercase">
+          <span
+            className="mr-2 inline-block size-1.5 rounded-full align-middle"
+            style={{ background: '#c094e4' }}
+          />
+          Assistant on duty
           {now && (
-            <>
-              {' '}
-              · {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}
-            </>
+            <> · {now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</>
           )}
         </p>
 
-        {/* quiet service line */}
-        <p className="mt-14 text-[12px] tracking-wide text-[#B4AEA3]">
-          Botox · Dermal fillers · Laser resurfacing · Chemical peels — consultations are free
-        </p>
+        {/* pastel category chips */}
+        <div className="mt-14 flex max-w-lg flex-wrap items-center justify-center gap-2">
+          {services.map((s) => (
+            <span
+              key={s.label}
+              className="rounded-full px-3.5 py-1.5 text-[12px] tracking-[-0.2px] text-[#574853]"
+              style={{ background: s.wash }}
+            >
+              {s.label}
+            </span>
+          ))}
+        </div>
       </section>
 
       <div className="fixed bottom-4 left-0 flex w-full items-center justify-center">
-        <p className="text-[11px] text-[#B4AEA3]">
-          Demo — Velora Aesthetics is a fictional clinic. Calls are answered by an AI assistant and
-          logged for the morning report.
+        <p className="font-mono text-[10px] tracking-[0.1em] text-[#b3b1af] uppercase">
+          Demo — Velora Aesthetics is a fictional clinic · calls are logged for the morning report
         </p>
       </div>
     </div>
