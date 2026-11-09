@@ -2,3 +2,18 @@ data/out/
 **/.env.local
 node_modules/
 .next/
+
+# GitHub prep
+dist
+build
+out
+coverage
+.turbo
+.vercel
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+.DS_Store

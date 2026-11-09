@@ -1,3 +1,5 @@
+Demo project built to show what I can build. Not a client project.
+
 # AfterCall
 
 **Overflow & after-hours AI receptionist for aesthetic clinics.** When the
