@@ -12,7 +12,6 @@ const publicSans = Public_Sans({
   subsets: ['latin'],
 });
 
-
 const commitMono = localFont({
   display: 'swap',
   variable: '--font-commit-mono',
